@@ -116,7 +116,7 @@ namespace Aegis.Controllers
 
         var rnd = new Random();
 
-        if (scaningUriModels.Count > findCount)
+        if (scaningUriModels.Count >= findCount)
         {
           this.Stop();
         }
