@@ -21,20 +21,13 @@
   <div class="row" *ngIf="messages.length > 0">
     <div class="table-responsive">
       <p>{{scaningUri}}</p>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Emails</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let m of messages; let i = index">
-            <td>{{i + 1}}</td>
-            <td>{{m}}</td>
-          </tr>
-        </tbody>
-      </table>
+      <ul class="list-group">
+        <li *ngFor="let message of messages; let i = index"
+            [@flyInOut]="'in'"
+            class="list-group-item find-element">
+          <span class="badge">{{i}}</span> {{message}}
+        </li>
+      </ul>
     </div>
   </div>
   <br />

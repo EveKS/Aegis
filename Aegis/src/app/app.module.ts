@@ -23,50 +23,53 @@ import { SpinnerComponent } from "./spinner/spinner.component";
 import { EmailValidator } from "./directives/email.validator.directive";
 import { GetUrlsComponent } from "./components/geturls/geturlscomponent";
 
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 const appRoutes: Routes = [
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent },
+    { path: '', redirectTo: 'home', pathMatch: 'full', canActivate: [AuthGuard] },
+    { path: 'home', component: HomeComponent },
 
-  { path: 'find-emails', component: FindEmailsComponent, canActivate: [AuthGuard] },
-  { path: 'get-urls', component: GetUrlsComponent, canActivate: [AuthGuard] },
+    { path: 'find-emails', component: FindEmailsComponent, canActivate: [AuthGuard] },
+    { path: 'get-urls', component: GetUrlsComponent, canActivate: [AuthGuard] },
 
-  { path: 'register', component: RegistrationFormComponent },
-  { path: 'login', component: LoginFormComponent },
+    { path: 'register', component: RegistrationFormComponent },
+    { path: 'login', component: LoginFormComponent },
 
-  { path: '**', redirectTo: 'home' }
+    { path: '**', redirectTo: 'home' }
 ];
 
 @NgModule({
-  providers: [
-    UserService, AuthGuard,
-    { provide: XHRBackend, useClass: AuthenticateXHRBackend },
-    { provide: 'BASE_URL', useFactory: getBaseUrl }
-  ],
-  declarations: [
-    MainComponent,
-    NavMenuComponent,
-    FindEmailsComponent,
-    GetUrlsComponent,
-    HomeComponent,
+    providers: [
+        UserService, AuthGuard,
+        { provide: XHRBackend, useClass: AuthenticateXHRBackend },
+        { provide: 'BASE_URL', useFactory: getBaseUrl }
+    ],
+    declarations: [
+        MainComponent,
+        NavMenuComponent,
+        FindEmailsComponent,
+        GetUrlsComponent,
+        HomeComponent,
 
-    EmailValidator,
-    RegistrationFormComponent,
-    LoginFormComponent,
+        EmailValidator,
+        RegistrationFormComponent,
+        LoginFormComponent,
 
-    myFocus, SpinnerComponent
-  ],
-  exports: [myFocus, SpinnerComponent],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    HttpModule,
-    CommonModule,
-    RouterModule.forRoot(appRoutes)
-  ],
-  bootstrap: [MainComponent]
+        myFocus, SpinnerComponent
+    ],
+    exports: [myFocus, SpinnerComponent],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        HttpModule,
+        CommonModule,
+        RouterModule.forRoot(appRoutes)
+    ],
+    bootstrap: [MainComponent]
 })
 export class AppModule { }
 
 export function getBaseUrl() {
-  return document.getElementsByTagName('base')[0].href;
+    return document.getElementsByTagName('base')[0].href;
 }

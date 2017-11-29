@@ -1,0 +1,4 @@
+.find-element:hover,
+.find-element:focus {
+  background: #d7d7d7;
+}

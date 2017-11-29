@@ -13,6 +13,11 @@ namespace Aegis.Datas
     public DbSet<ParsingEmailModel> ParsingEmailModels { get; set; }
     public DbSet<ScaningUriModel> ScaningUriModels { get; set; }
 
+    public DbSet<Company> Companys { get; set; }
+    public DbSet<Delivery> Deliverys { get; set; }
+    public DbSet<DeliveryRegion> DeliveryRegions { get; set; }
+    public DbSet<AdditionaServices> AdditionaServices { get; set; }
+
     public ApplicationContext(DbContextOptions<ApplicationContext> options)
         : base(options)
     {

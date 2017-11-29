@@ -2,8 +2,33 @@
   <h1>Home page</h1>
 
   <hr />
-  <br />
+  <ul class="list-group" *ngIf="!category && !emailGeted">
+    <li *ngFor="let category of categorys; let i = index"
+        [@flyInOut]="'in'"
+        (click)="onClick(category)"
+        class="list-group-item find-element">
+      <span class="badge">{{i}}</span> {{category}}
+    </li>
+  </ul>
 
+  <ul class="list-group" *ngIf="category && !emailGeted">
+    <li *ngFor="let category of categorys; let i = index"
+        [@flyInOut]="'in'"
+        (click)="getMails(category)"
+        class="list-group-item find-element">
+      <span class="badge">{{i}}</span> {{category}}
+    </li>
+  </ul>
+
+  <ul class="list-group" *ngIf="emailGeted">
+    <li *ngFor="let category of categorys"
+        [@flyInOut]="'in'"
+        class="list-group-item">
+      {{category}}
+    </li>
+  </ul>
+
+  <br />
   <div class="col-md-4">
     <p>
       Tincidunt integer eu augue augue nunc elit dolor, luctus placerat scelerisque euismod, iaculis eu lacus nunc mi elit, vehicula ut laoreet ac, aliquam sit amet justo nunc tempor, metus vel.

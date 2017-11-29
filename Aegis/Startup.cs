@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,85 +25,85 @@ using Aegis.Service.JSON;
 
 namespace Aegis
 {
-    public class Startup
+  public class Startup
+  {
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
+      Configuration = configuration;
+    }
+
+    public IConfiguration Configuration { get; }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.AddApplicationInsightsTelemetry(Configuration);
+      services.AddMvc();
+
+      #region DB connection
+      //string connection = Configuration["ConnectionStrings:DefaultConnection"];
+      //string connection = Configuration["ConnectionStrings:RegRu"];
+      string connection = Configuration["ConnectionStrings:aegis"];
+      services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
+      #endregion
+
+      #region Identity
+      services.AddIdentity<User, IdentityRole>(options =>
+      {
+        options.User = new UserOptions
         {
-            Configuration = configuration;
-        }
+          RequireUniqueEmail = true,
+                //AllowedUserNameCharacters = "допустимые символы"
+              };
 
-        public IConfiguration Configuration { get; }
-
-        public void ConfigureServices(IServiceCollection services)
+        options.Password = new PasswordOptions
         {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            services.AddMvc();
+          RequireDigit = true,
+          RequireNonAlphanumeric = false,
+          RequireUppercase = false,
+          RequireLowercase = true,
+          RequiredLength = 5,
+        };
+      })
+          .AddEntityFrameworkStores<ApplicationContext>();
 
-            #region DB connection
-            //string connection = Configuration["ConnectionStrings:DefaultConnection"];
-            //string connection = Configuration["ConnectionStrings:RegRu"];
-            string connection = Configuration["ConnectionStrings:aegis"];
-            services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
-            #endregion
+      services.AddAuthentication()
+          .AddFacebook(facebookOptions =>
+          {
+            facebookOptions.AppId = "AppId";
+            facebookOptions.AppSecret = "AppSecret ";
+          });
 
-            #region Identity
-            services.AddIdentity<User, IdentityRole>(options =>
+      services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+          .AddJwtBearer(cfg =>
+          {
+            cfg.RequireHttpsMetadata = false;
+            cfg.SaveToken = true;
+
+            cfg.TokenValidationParameters = new TokenValidationParameters()
             {
-                options.User = new UserOptions
-                {
-                    RequireUniqueEmail = true,
-                    //AllowedUserNameCharacters = "допустимые символы"
-                };
+              ValidateIssuer = true,
+              ValidIssuer = "234234",
 
-                options.Password = new PasswordOptions
-                {
-                    RequireDigit = true,
-                    RequireNonAlphanumeric = false,
-                    RequireUppercase = false,
-                    RequireLowercase = true,
-                    RequiredLength = 5,
-                };
-            })
-                .AddEntityFrameworkStores<ApplicationContext>();
+              ValidateAudience = true,
+              ValidAudience = "234234",
 
-            services.AddAuthentication()
-                .AddFacebook(facebookOptions =>
-                {
-                    facebookOptions.AppId = "AppId";
-                    facebookOptions.AppSecret = "AppSecret ";
-                });
+              ValidateLifetime = true,
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(cfg =>
-                {
-                    cfg.RequireHttpsMetadata = false;
-                    cfg.SaveToken = true;
+              IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("rte_tert_ert_re_tretretert!!"))
+            };
+          });
+      #endregion
 
-                    cfg.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = "234234",
+      #region Gzip Deflate
+      services.Configure<GzipCompressionProviderOptions>(options =>
+          options.Level = CompressionLevel.Optimal);
 
-                        ValidateAudience = true,
-                        ValidAudience = "234234",
+      services.AddResponseCompression(options =>
+      {
+        options.EnableForHttps = true;
 
-                        ValidateLifetime = true,
-
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("rte_tert_ert_re_tretretert!!"))
-                    };
-                });
-            #endregion
-
-            #region Gzip Deflate
-            services.Configure<GzipCompressionProviderOptions>(options =>
-                options.Level = CompressionLevel.Optimal);
-
-            services.AddResponseCompression(options =>
-            {
-                options.EnableForHttps = true;
-
-                options.MimeTypes = new[]
-                {
+        options.MimeTypes = new[]
+              {
                     // General
                     "text/plain",
                     // Static files
@@ -117,68 +117,69 @@ namespace Aegis
                     "text/json",
                     // Custom
                     "image/svg+xml"
-                };
+          };
 
-                options.Providers.Add<GzipCompressionProvider>();
-            });
-            #endregion
+        options.Providers.Add<GzipCompressionProvider>();
+      });
+      #endregion
 
-            #region services handlers.
-            IServiceProvider provider = services.BuildServiceProvider();
+      #region services handlers.
+      IServiceProvider provider = services.BuildServiceProvider();
 
-            ITelegramService telegram = new TelegramService(Configuration);
+      ITelegramService telegram = new TelegramService(Configuration);
 
-            services.AddTransient<ITelegramService, TelegramService>(option =>
-              new TelegramService(Configuration));
+      services.AddTransient<ITelegramService, TelegramService>(option =>
+        new TelegramService(Configuration));
 
-            services.AddTransient<IGoogleSearchService, GoogleSearchService>(option =>
-              new GoogleSearchService(Configuration, telegram));
+      services.AddTransient<IGoogleSearchService, GoogleSearchService>(option =>
+        new GoogleSearchService(Configuration, telegram));
 
-            services.AddTransient<IHtmlService, HtmlService>(option => new HtmlService(telegram));
+      services.AddTransient<IHtmlService, HtmlService>(option => new HtmlService(telegram));
 
-            services.AddTransient<IJsonService, JsonService>();
+      services.AddTransient<IJsonService, JsonService>();
 
-            ApplicationContext applicationContext = provider.GetRequiredService<ApplicationContext>();
+      ApplicationContext applicationContext = provider.GetRequiredService<ApplicationContext>();
 
-            services.AddTransient<IHtmlNotification, HtmlNotification>(option =>
-              new HtmlNotification(applicationContext, telegram));
-            #endregion
-        }
-
-
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseResponseCompression();
-
-            app.UseDefaultFiles();
-            app.UseStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = content =>
-                {
-                    var time = 7 * 24 * 60 * 60;
-
-                    content.Context.Response.Headers[HeaderNames.CacheControl] = $"public,max-age={time}";
-                    content.Context.Response.Headers[HeaderNames.Expires] = DateTime.UtcNow.AddDays(7).ToString("R"); // Format RFC1123
-                }
-            });
-
-            app.Use(async (context, next) => {
-                await next();
-                if (context.Response.StatusCode == 404 &&
-                   !Path.HasExtension(context.Request.Path.Value) &&
-                   !context.Request.Path.Value.StartsWith("/api/"))
-                {
-                    context.Request.Path = "/index.html";
-                    await next();
-                }
-            });
-
-            app.UseMvcWithDefaultRoute();
-        }
+      services.AddTransient<IHtmlNotification, HtmlNotification>(option =>
+        new HtmlNotification(applicationContext, telegram));
+      #endregion
     }
+
+
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+    {
+      if (env.IsDevelopment())
+      {
+        app.UseDeveloperExceptionPage();
+      }
+
+      app.UseResponseCompression();
+
+      app.UseDefaultFiles();
+      app.UseStaticFiles(new StaticFileOptions()
+      {
+        OnPrepareResponse = content =>
+        {
+          var time = 7 * 24 * 60 * 60;
+
+          content.Context.Response.Headers[HeaderNames.CacheControl] = $"public,max-age={time}";
+          content.Context.Response.Headers[HeaderNames.Expires] = DateTime.UtcNow.AddDays(7).ToString("R"); // Format RFC1123
+                }
+      });
+
+      app.Use(async (context, next) =>
+      {
+        await next();
+        if (context.Response.StatusCode == 404 &&
+           !Path.HasExtension(context.Request.Path.Value) &&
+           !context.Request.Path.Value.StartsWith("/api/"))
+        {
+          context.Request.Path = "/index.html";
+          await next();
+        }
+      });
+
+      app.UseMvcWithDefaultRoute();
+    }
+  }
 }

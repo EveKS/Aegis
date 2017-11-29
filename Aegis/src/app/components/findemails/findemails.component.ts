@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, OnDestroy, trigger, state, transition, style, animate } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, trigger, state, transition, style, animate, group } from '@angular/core';
 import { NgModel, NgForm } from '@angular/forms';
 import { Http, Response, Headers } from '@angular/http';
 import { Observable } from "rxjs/Observable";
@@ -11,7 +11,20 @@ import { StartParametrs } from "../../shared/models/start.parametrs.class";
 
 @Component({
   selector: 'find-emails',
-  templateUrl: './findemails.component.html'
+  templateUrl: './findemails.component.html',
+  styleUrls: ['./findemails.component.css'],
+  animations: [
+      trigger('flyInOut', [
+          state('in', style({ transform: 'translateX(0)' })),
+          transition('void => *', [
+              style({ transform: 'translateX(-100%)' }),
+              animate(200)
+          ]),
+          transition('* => void', [
+              animate(200, style({ transform: 'translateX(100%)' }))
+          ])
+      ])
+  ]
 })
 export class FindEmailsComponent {
   messages: string[];
@@ -31,7 +44,7 @@ export class FindEmailsComponent {
 
   private getHeaders(): Headers {
     let headers = new Headers();
-    headers.append('Content-Type', 'application/json');
+    headers.append('Content-Type', 'application/json;charset=utf-8');
     let authToken = localStorage.getItem('auth_token');
     headers.append('Authorization', `Bearer ${authToken}`);
 
@@ -42,7 +55,6 @@ export class FindEmailsComponent {
     this.continue = true;
 
     let headers = this.getHeaders();
-    headers.append('Content-Type', 'application/json;charset=utf-8');
 
     let start: StartParametrs = Object.assign(new StartParametrs(), {
       message: this.message,
